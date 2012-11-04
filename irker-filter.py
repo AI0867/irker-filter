@@ -7,8 +7,11 @@ import SocketServer
 import threading
 import Queue
 
-# Besides the filtering, this is the only configurable part
-HOST = "10.0.0.105"
+# Find our public-facing IP
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(('8.8.8.8', 80));
+HOST = s.getsockname()[0]
+s.close()
 
 # These shouldn't need to be changed
 LOCALHOST = "127.0.0.1"
