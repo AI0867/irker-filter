@@ -1,11 +1,19 @@
 #!/usr/bin/python
 
 import json
+import re
 import signal
 import socket
 import SocketServer
 import threading
 import Queue
+
+DEBUG=0
+
+def debug(message):
+    import sys
+    if DEBUG:
+        sys.stderr.write(message)
 
 # Find our public-facing IP
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -13,18 +21,72 @@ s.connect(('8.8.8.8', 80));
 HOST = s.getsockname()[0]
 s.close()
 
+debug("Listening on IP {0}\n".format(HOST))
+
 # These shouldn't need to be changed
 LOCALHOST = "127.0.0.1"
 PORT = 6659
 
+FILTER = "filter.json"
+
 if __name__ == "__main__":
     packet_queue = Queue.Queue()
 
-    def do_filter(packet, peer):
-        print "Got message {0} from peer {1}:{2}".format(packet,peer[0],peer[1])
-        if "BANNED" in json.loads(packet)["privmsg"]:
+    def sane(packet):
+        if len(packet) != 2:
             return False
+        if "to" not in packet:
+            return False
+        if "privmsg" not in packet:
+            return False
+        targets = packet["to"]
+        if isinstance(targets, basestring):
+            return True
+        if not isinstance(targets, list):
+            return False
+        for target in targets:
+            if not isinstance(target, basestring):
+                return False
         return True
+
+    def match(filt, packet, peer):
+        for k,v in filt.items():
+            if k == "host":
+                try:
+                    hosttuple = socket.gethostbyname_ex(v)
+                    if peer[0] not in hosttuple[2]:
+                        return False
+                except:
+                    return False
+            elif k == "ip":
+                # TODO: CIDR
+                if v != peer[0]:
+                    return False
+            elif k == "to":
+                targets = packet["to"]
+                if not isinstance(targets, list):
+                    targets = [targets]
+                for target in targets:
+                    if not re.match(v, target):
+                        return False
+            elif k == "privmsg":
+                if not re.match(v, packet["privmsg"]):
+                    return False
+        return True
+
+    def do_filter(packet, peer):
+        debug("Got message {0} from peer {1}:{2}... ".format(packet,peer[0],peer[1]))
+        filters = json.load(open(FILTER,"r"))
+        packet = json.loads(packet)
+        if not sane(packet):
+            debug("not sane\n")
+            return False
+        for f in filters:
+            if match(f, packet, peer):
+                debug("OK\n")
+                return True
+        debug("rejected\n")
+        return False
 
     class UDPHandler(SocketServer.BaseRequestHandler):
         def handle(self):
