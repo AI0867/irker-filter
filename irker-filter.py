@@ -53,7 +53,11 @@ if __name__ == "__main__":
             return True
         def match(self, packet, peer):
             debug("Got message {0} from peer {1}:{2}... ".format(packet,peer[0],peer[1]))
-            packet = json.loads(packet)
+            try:
+                packet = json.loads(packet)
+            except:
+                debug("exception on JSON parse\n")
+                return False
             if not self.sane(packet):
                 debug("not sane\n")
                 return False
