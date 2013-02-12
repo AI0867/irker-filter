@@ -6,13 +6,23 @@ class CIDR(object):
             return object.__new__(CIDRv6, str_addr)
         else:
             return object.__new__(CIDRv4, str_addr)
-    def __init__(self, str_addr):
+    def __init__(self, str_addr, sep, bitgroup, base):
         if "/" in str_addr:
             self.str_addr, bits = str_addr.split("/")
             self.bits = int(bits)
         else:
             self.str_addr = str_addr
             self.bits = self.MAX_BITS
+
+        addr_parts = self.str_addr.split(sep)
+        assert (self.MAX_BITS % bitgroup) == 0
+        assert len(addr_parts) == (self.MAX_BITS / bitgroup)
+
+        addr = 0
+        for part in addr_parts:
+            addr *= 2**bitgroup
+            addr += int(part, base)
+        self.addr = self.mask(addr)
     def mask(self, addr):
         return addr & ((2**self.bits - 1) << (self.MAX_BITS - self.bits))
     def __contains__(self, other):
@@ -40,15 +50,7 @@ class CIDRv4(CIDR):
     MAX_BITS = 32
     VERSION = 4
     def __init__(self, str_addr):
-        CIDR.__init__(self, str_addr)
-
-        addr_parts = self.str_addr.split(".")
-        assert len(addr_parts) == 4
-        addr = 0
-        for part in addr_parts:
-            addr *= 2**8
-            addr += int(part)
-        self.addr = self.mask(addr)
+        CIDR.__init__(self, str_addr, ".", 8, 10)
     def __str__(self):
         return self.format(".", 8, 10)
 
@@ -56,22 +58,14 @@ class CIDRv6(CIDR):
     MAX_BITS = 128
     VERSION = 6
     def __init__(self, str_addr):
-        CIDR.__init__(self, str_addr)
+        assert 1 < self.str_addr.count(":") < 8
+        if str_addr.startswith(":"):
+            str_addr = "0" + str_addr
+        if "::" in str_addr:
+            parts_missing = 8 - str_addr.count(":")
+            str_addr = str_addr.replace("::", ":{0}".format("0:" * parts_missing))
 
-        assert 0 < self.str_addr.count(":") < 8
-        if self.str_addr.startswith(":"):
-            self.str_addr = "0" + self.str_addr
-        if "::" in self.str_addr:
-            parts_missing = 8 - self.str_addr.count(":")
-            self.str_addr = self.str_addr.replace("::", ":{0}".format("0:" * parts_missing))
-        addr_parts = self.str_addr.split(":")
-        assert len(addr_parts) == 8
-
-        addr = 0
-        for part in addr_parts:
-            addr *= 2**16
-            addr += int(part, 16)
-        self.addr = self.mask(addr)
+        CIDR.__init__(self, str_addr, ":", 16, 16)
     def __str__(self):
         return self.format(":", 16, 16)
 
