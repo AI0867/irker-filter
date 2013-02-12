@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import cidr
 import json
 import re
 import signal
@@ -29,37 +30,6 @@ PORT = 6659
 
 FILTER = "filter.json"
 
-# TODO: IPv6
-class CIDR(object):
-    MAX_BITS = 32
-    def __init__(self, str_addr):
-        if "/" in str_addr:
-            str_addr, bits = str_addr.split("/")
-            self.bits = int(bits)
-        else:
-            self.bits = self.MAX_BITS
-        addr_parts = str_addr.split(".")
-        assert len(addr_parts) == 4
-        addr = 0
-        for part in addr_parts:
-            addr *= 256
-            addr += int(part)
-        self.addr = self.mask(addr)
-    def mask(self, addr):
-        return addr & ((2**self.bits - 1) << (self.MAX_BITS - self.bits))
-    def __str__(self):
-        return "{0}.{1}.{2}.{3}/{4}".format(
-            self.addr / 2**24,
-            (self.addr / 2**16) % 256,
-            (self.addr / 2**8) % 256,
-            self.addr % 256,
-            self.bits
-        )
-    def __contains__(self, other):
-        try:
-            return self.mask(other.addr) == self.addr
-        except:
-            return False
 
 if __name__ == "__main__":
     packet_queue = Queue.Queue()
@@ -109,7 +79,7 @@ if __name__ == "__main__":
                     except:
                         return False
                 elif k == "ip":
-                    if CIDR(peer[0]) not in CIDR(v):
+                    if cidr.CIDR(peer[0]) not in cidr.CIDR(v):
                         return False
                 elif k == "to":
                     targets = packet["to"]
