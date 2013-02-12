@@ -67,6 +67,10 @@ class CIDRv6(CIDR):
         assert 1 < str_addr.count(":") < 8
         if str_addr.startswith(":"):
             str_addr = "0" + str_addr
+        if str_addr.endswith(":"):
+            str_addr += "0"
+        if ":/" in str_addr:
+            str_addr = str_addr.replace(":/", ":0/")
         if "::" in str_addr:
             parts_missing = 8 - str_addr.count(":")
             str_addr = str_addr.replace("::", ":{0}".format("0:" * parts_missing))
