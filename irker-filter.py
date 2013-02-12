@@ -81,7 +81,11 @@ if __name__ == "__main__":
                     except:
                         return False
                 elif k == "ip":
-                    if cidr.CIDR(peer[0]) not in cidr.CIDR(v):
+                    if not isinstance(v, list):
+                        v = [v]
+                    peerip = cidr.CIDR(peer[0])
+                    matches = [peerip in cidr.CIDR(mask) for mask in v]
+                    if not any(matches):
                         return False
                 elif k == "to":
                     targets = packet["to"]
