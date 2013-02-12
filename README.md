@@ -16,5 +16,5 @@ The file contains a list of dicts. Each dict is a filter that, if matched, allow
 
 * privmsg: A regex that has to match the 'privmsg' part of the irker message.
 * to: A regex that has to match the 'to' part of the irker message.
-* ip: The exact IP the message came from. (possible future features: CIDR, lists)
+* ip: CIDR-style IP mask: 10.1.0.0/16
 * host: A hostname for which the DNS results must contain the source IP.
