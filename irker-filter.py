@@ -16,13 +16,15 @@ def debug(message):
     if DEBUG:
         sys.stderr.write(message)
 
-# Find our public-facing IP
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.connect(('8.8.8.8', 80));
-HOST = s.getsockname()[0]
-s.close()
-
-debug("Listening on IP {0}\n".format(HOST))
+def find_public_ip(sockettype, addr):
+    try:
+        s = socket.socket(sockettype, socket.SOCK_DGRAM)
+        s.connect((addr, 80))
+        host = s.getsockname()[0]
+        s.close()
+        return host
+    except:
+        return None
 
 # These shouldn't need to be changed
 LOCALHOST = "127.0.0.1"
@@ -116,10 +118,19 @@ if __name__ == "__main__":
                 if self.filterer.match(packet, peer):
                     self.send(packet)
 
-    tcpserver = SocketServer.TCPServer((HOST, PORT), TCPHandler)
-    udpserver = SocketServer.UDPServer((HOST, PORT), UDPHandler)
-    irkerconn = IrkerConn((LOCALHOST, PORT))
-    for server in [tcpserver, udpserver, irkerconn]:
+    # Find our public-facing IPs
+    host_v4 = find_public_ip(socket.AF_INET, '8.8.8.8') # google-public-dns-a.google.com
+    host_v6 = find_public_ip(socket.AF_INET6, '2a00:1450:400c:c05::67') # ipv6.google.com
+
+    servers = []
+    for host in filter(lambda x:x, [host_v4, host_v6]):
+        debug("Listening on {0}\n".format(host))
+        servers.append(SocketServer.TCPServer((host, PORT), TCPHandler))
+        servers.append(SocketServer.UDPServer((host, PORT), UDPHandler))
+    if not servers:
+        raise Exception("Not listening on any IPs")
+    servers.append(IrkerConn((LOCALHOST, PORT)))
+    for server in servers:
         server = threading.Thread(target=server.serve_forever)
         server.setDaemon(True)
         server.start()
