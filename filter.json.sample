@@ -2,6 +2,6 @@
  { "host":"sh2.rs.github.com", "to":"irc://chat.freenode.net/.*" },
  { "host":"sh3.rs.github.com", "to":"irc://chat.freenode.net/.*" },
  { "host":"sh4.rs.github.com", "to":"irc://chat.freenode.net/.*" },
- { "ip":["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "fec0::/10"], "to":"irc://chat.freenode.net/.*", "privmsg":"sudo.*"},
+ { "ip":["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "fe80::/10"], "to":"irc://chat.freenode.net/.*", "privmsg":"sudo.*"},
  { "host":"ai0867.net", "to":".*/AI0867,isnick"}
 ]
