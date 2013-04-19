@@ -1,5 +1,13 @@
 [
- { "host":"sh2.rs.github.com", "to":"irc://chat.freenode.net/.*" },
- { "host":"sh3.rs.github.com", "to":"irc://chat.freenode.net/.*" },
- { "host":"sh4.rs.github.com", "to":"irc://chat.freenode.net/.*" }
+ {
+  "ip":[
+   "207.97.227.253/32",
+   "50.57.128.197/32",
+   "108.171.174.178/32",
+   "50.57.231.61/32",
+   "204.232.175.64/27",
+   "192.30.252.0/22"
+  ],
+  "to":"irc://chat.freenode.net/.*"
+ }
 ]
