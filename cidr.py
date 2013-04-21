@@ -3,9 +3,9 @@
 class CIDR(object):
     def __new__(cls, str_addr):
         if ":" in str_addr:
-            return object.__new__(CIDRv6, str_addr)
+            return object.__new__(CIDRv6)
         else:
-            return object.__new__(CIDRv4, str_addr)
+            return object.__new__(CIDRv4)
     def __init__(self, str_addr):
         if "/" in str_addr:
             self.str_addr, bits = str_addr.split("/")
