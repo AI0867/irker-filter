@@ -89,10 +89,16 @@ if __name__ == "__main__":
                         return False
                 elif k == "to":
                     targets = packet["to"]
+                    t_filters = v
                     if not isinstance(targets, list):
                         targets = [targets]
+                    if not isinstance(t_filters, list):
+                        t_filters = [t_filters]
                     for target in targets:
-                        if not re.match(v, target):
+                        for tf in t_filters:
+                            if re.match(tf, target):
+                                break
+                        else:
                             return False
                 elif k == "privmsg":
                     if not re.match(v, packet["privmsg"]):
